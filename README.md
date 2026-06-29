@@ -156,5 +156,5 @@ Here are 5 core DAX measures defined in the model:
 
 ## 👤 Author
 - **Portfolio Project**
-- GitHub: [github.com/yourprofile](https://github.com)
-- LinkedIn: [linkedin.com/in/yourprofile](https://linkedin.com)
+- [GitHub](github.com/shravani22patil)
+- [LinkedIn](https://www.linkedin.com/in/shravani-patil-38791b286/)
