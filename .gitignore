@@ -1,0 +1,6 @@
+*.db
+exports/
+pipeline.log
+__pycache__/
+venv/
+.env
