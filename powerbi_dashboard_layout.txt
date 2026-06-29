@@ -1,0 +1,193 @@
+==============================================================================
+POWER BI DASHBOARD LAYOUT & DESIGN SYSTEM
+==============================================================================
+Project: D2C Brand Monitor
+File: powerbi_dashboard_layout.txt
+Report Canvas Dimensions: 16:9 widescreen (1280 x 720 pixels or 1920 x 1080 pixels)
+==============================================================================
+
+Theme Palette:
+- Dark Navy Header Bar: #0F1923
+- Light Background: #F7F9FB
+- Accent Primary: #1E3D59
+- Positive Green: #2EC4B6
+- Neutral Grey/Amber: #FFBF00
+- Negative Red: #E71D36
+- Font Family: "Segoe UI" or "Arial" (standard Power BI sans-serif)
+
+──────────────────────────────────────────────────────────────────────────────
+PAGE 1 — Brand Health Overview
+──────────────────────────────────────────────────────────────────────────────
+Goal: High-level snapshot of average ratings, review count, and high alerts.
+
+[Header Bar] (Dark Navy #0F1923, height: 60px, spans full width)
+- Title: "D2C Skincare Brand Monitor — Health Overview" (White text, size 18, bold, left-aligned)
+- Slicers:
+  - Brand name (Top Right, pill/button style, single-select, dim_brand[brand_name])
+  - Date range (Top Right, month picker, dropdown or list, dim_date[year_month])
+
+[Row 1] (4 KPI Cards across the top - Y: 80px, Height: 90px)
+- Card 1 (X: 20px, Width: 290px): 
+  - Measure: [Avg Rating]
+  - Label: "Average Rating (Overall)"
+- Card 2 (X: 330px, Width: 290px): 
+  - Measure: [Total Reviews]
+  - Label: "Total Reviews (Selected Period)"
+- Card 3 (X: 640px, Width: 290px): 
+  - Measure: [Positive Review %]
+  - Label: "Positive Reviews %"
+- Card 4 (X: 950px, Width: 290px): 
+  - Measure: [Active High Alerts]
+  - Label: "Active High-Severity Alerts"
+
+[Row 2] (Main Timeline Chart - Y: 190px, Height: 260px, Width: 1240px)
+- Visual Type: Line Chart
+- X-axis: dim_date[year_month] (chronological order)
+- Y-axis: [Avg Rating] (Set Y-axis range from 1 to 5 to preserve scale)
+- Legend: dim_brand[brand_name]
+- Color Palette:
+  * Mamaearth: Light Green (#8BC34A)
+  * Dot & Key: Teal (#009688)
+  * Plum: Purple (#9C27B0)
+  * WOW Skin Science: Dark Amber (#FF9800)
+- Title: "Brand Rating Timeline — Last 6 Months"
+
+[Row 3] (Two charts side-by-side - Y: 470px, Height: 230px)
+- Visual Left (X: 20px, Width: 600px):
+  - Visual Type: Clustered Bar Chart
+  - Axis: dim_brand[brand_name]
+  - Values: [Positive Review %], [Negative Review %], [Neutral Review %]
+  - Title: "Sentiment Breakdown by Brand"
+- Visual Right (X: 660px, Width: 600px):
+  - Visual Type: Gauge Chart
+  - Value: [Brand Health Score] (Target max set to 100)
+  - Title: "Selected Brand Health Score"
+  - Format: Color fill transitions (Red <50, Amber 50-70, Green >70)
+
+──────────────────────────────────────────────────────────────────────────────
+PAGE 2 — Sentiment Deep Dive
+──────────────────────────────────────────────────────────────────────────────
+Goal: Analyze polarization, reviewer subjectivity, and detailed sentiment trends.
+
+[Header Bar] (Navy #0F1923)
+- Title: "Sentiment Analysis by Brand"
+
+[Row 1] (Trend Area Chart - Y: 80px, Height: 200px, Width: 1240px)
+- Visual Type: Area Chart (Stacked or 100% Stacked)
+- X-axis: dim_date[year_month]
+- Y-axis: [Sentiment Score]
+- Legend: dim_brand[brand_name]
+- Title: "Sentiment Score Trend Over Time per Brand"
+
+[Row 2] (3 Metric Cards - Y: 295px, Height: 80px)
+- Card 1 (X: 20px, Width: 390px):
+  - Measure: Average of fact_reviews[polarity]
+  - Label: "Average Polarity (-1.0 to 1.0)"
+- Card 2 (X: 430px, Width: 390px):
+  - Measure: Average of fact_reviews[subjectivity]
+  - Label: "Average Subjectivity (0.0 to 1.0)"
+- Card 3 (X: 840px, Width: 400px):
+  - Measure: [Rating Trend Arrow]
+  - Label: "Rating Trend vs Last Month"
+
+[Row 3] (Monthly Sentiment Distribution - Y: 390px, Height: 150px, Width: 1240px)
+- Visual Type: 100% Stacked Bar Chart
+- Y-axis: dim_brand[brand_name] / dim_date[year_month] (Hierarchy)
+- X-axis/Values: Count of reviews grouped by fact_reviews[sentiment_label]
+- Colors: Positive (Teal), Neutral (Grey), Negative (Red)
+- Title: "Sentiment Breakdown per Brand Month-over-Month"
+
+[Row 4] (Polarity Scatter - Y: 555px, Height: 150px, Width: 1240px)
+- Visual Type: Scatter Plot
+- X-axis: Polarity (fact_reviews[polarity])
+- Y-axis: Rating (fact_reviews[rating])
+- Details: fact_reviews[review_id]
+- Legend: dim_brand[brand_name]
+- Title: "Review Polarity vs. Numerical Rating Distribution"
+
+──────────────────────────────────────────────────────────────────────────────
+PAGE 3 — Keyword Intelligence
+──────────────────────────────────────────────────────────────────────────────
+Goal: Highlight customer pain points and rising complaints.
+
+[Header Bar] (Navy #0F1923)
+- Title: "What Customers Are Talking About"
+
+[Row 1] (4 Keyword KPI Cards - Y: 80px, Height: 80px)
+- Card 1 (X: 20px, Width: 290px): [Packaging Complaint %]
+- Card 2 (X: 330px, Width: 290px): [Delivery Complaint %]
+- Card 3 (X: 640px, Width: 290px): [Fragrance Complaint %] (DAX calculation template matching packaging)
+- Card 4 (X: 950px, Width: 290px): [Price Complaint %] (DAX template matching packaging)
+
+[Row 2] (Keyword Alerts Table - Y: 180px, Height: 240px, Width: 1240px)
+- Visual Type: Table
+- Columns: 
+  * keyword_alerts[brand_name]
+  * keyword_alerts[keyword]
+  * keyword_alerts[pct_of_negative_reviews] (Format: Percentage or Decimal)
+  * keyword_alerts[keyword_shift] (Format: Percentage or Decimal, e.g. "+5.4%")
+  * keyword_alerts[alert_severity]
+- Sorting: keyword_alerts[keyword_shift] (Descending)
+- Conditional Formatting (Alert Severity):
+  * "High" (shift > 20%): Soft Red background (#FADBD8) with Dark Red text (#78281F)
+  * "Medium" (shift > 10%): Soft Amber background (#FCF3CF) with Dark Orange text (#7E5109)
+  * "Low" (shift > 5%): Soft Yellow background (#FEF9E7) with Olive text (#7D6608)
+- Title: "Rising Keyword Alerts (Shift > 5%)"
+
+[Row 3] (Keyword Frequency Bar - Y: 440px, Height: 260px, Width: 600px)
+- Visual Type: Clustered Column Chart
+- X-axis: keyword_alerts[keyword]
+- Y-axis: Sum of keyword_alerts[frequency]
+- Filters: Top 10 by frequency
+- Title: "Top 10 Keywords by Frequency (Filtered by Brand Selection)"
+
+[Row 4] (Packaging Complaint Line - Y: 440px, X: 640px, Height: 260px, Width: 600px)
+- Visual Type: Line Chart
+- X-axis: dim_date[year_month]
+- Y-axis: [Packaging Complaint %]
+- Legend: dim_brand[brand_name]
+- Title: "Headline Trend: Packaging Complaint % Over Time"
+
+──────────────────────────────────────────────────────────────────────────────
+PAGE 4 — Weekly Digest (Executive Newspaper Front Page)
+──────────────────────────────────────────────────────────────────────────────
+Goal: Visual executive report designed for screenshots and presentations.
+
+[Header Bar] (Navy #0F1923)
+- Title: "This Week's Brand Intelligence Digest"
+- Date Range Indicator: Display current week window.
+
+[Row 1] (4 Brand Cards side-by-side - Y: 80px, Height: 350px)
+Each card represents one brand and groups these measures:
+
+* Brand Card 1: Mamaearth (X: 20px, Width: 290px)
+* Brand Card 2: Dot & Key (X: 330px, Width: 290px)
+* Brand Card 3: Plum (X: 640px, Width: 290px)
+* Brand Card 4: WOW Skin Science (X: 950px, Width: 290px)
+
+Inside each Card Container:
+- Section 1 (Title): Brand Name (Bold, size 16)
+- Section 2 (Rating): [Avg Rating] & [Rating Trend Arrow] (e.g. "4.10 ▲ 0.15")
+- Section 3 (Top Word): "Top Complaint Keyword: " & [Top Rising Keyword]
+- Section 4 (Volume): "Weekly Review Volume: " & [Total Reviews] (filtered to last 7 days)
+- Section 5 (KPI Fill): [Brand Health Score] gauge or KPI background block
+  * Color coding: Green (#D4EFDF) if Score > 70, Amber (#FCF3CF) if 50-70, Red (#FADBD8) if < 50
+
+[Row 2] (Plain English Narrative Box - Y: 450px, Height: 230px, Width: 1240px)
+- Visual Type: Smart Narrative or Dynamic HTML Text Box
+- Content (Dynamic binding values inside brackets):
+  ----------------------------------------------------------------------------
+  EXECUTIVE SUMMARY:
+  
+  During this period, [Selected Brand Name]'s customer sentiment experienced 
+  noticeable changes. The average rating stands at [Avg Rating] (Change vs last 
+  month: [Rating vs Last Month] points). 
+  
+  The primary complaint area is [Top Rising Keyword], which showed a shift of 
+  +[Top Keyword Shift]% in customer reviews this month. 
+  
+  Our composite Brand Health Score is calculated at [Brand Health Score] out of 100, 
+  which categorizes the brand health as [Health Category].
+  ----------------------------------------------------------------------------
+- Styling: Premium text box with a light grey border, 12pt Segoe UI font, and 1.5 line spacing.
+==============================================================================

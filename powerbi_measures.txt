@@ -1,0 +1,163 @@
+// ============================================================================
+// DAX MEASURES FOR D2C BRAND HEALTH MONITOR DASHBOARD
+// ============================================================================
+// File: powerbi_measures.txt
+// These measures are designed for use with the star schema model:
+// fact_reviews, fact_monthly_summary, dim_brand, dim_date, keyword_alerts.
+// Copy and paste each block below into a New Measure in Power BI.
+// ============================================================================
+
+// ── Core Metrics ──────────────────────────────────────────────
+
+// Total Reviews
+// Counts the total number of review records in the fact_reviews table.
+Total Reviews = 
+COUNTROWS(fact_reviews)
+
+
+// Avg Rating
+// Computes the average rating across all reviews (scale of 1-5).
+Avg Rating = 
+AVERAGE(fact_reviews[rating])
+
+
+// Avg Rating (Selected Brand)
+// Computes the average rating for the selected brand from the dim_brand table, 
+// overriding default row filters.
+Avg Rating (Selected Brand) = 
+CALCULATE(
+    AVERAGE(fact_reviews[rating]),
+    SELECTEDVALUE(dim_brand[brand_name])
+)
+
+
+// ── Sentiment Measures ────────────────────────────────────────
+
+// Positive Review %
+// Calculates the percentage of reviews that are classified as "Positive".
+Positive Review % = 
+DIVIDE(
+    COUNTROWS(FILTER(fact_reviews, fact_reviews[sentiment_label] = "Positive")),
+    COUNTROWS(fact_reviews),
+    0
+) * 100
+
+
+// Negative Review %
+// Calculates the percentage of reviews that are classified as "Negative".
+Negative Review % = 
+DIVIDE(
+    COUNTROWS(FILTER(fact_reviews, fact_reviews[sentiment_label] = "Negative")),
+    COUNTROWS(fact_reviews),
+    0
+) * 100
+
+
+// Sentiment Score
+// Measures sentiment polarity (scaled from -100 to +100).
+// Higher values mean more positive reviews; lower values mean negative reviews.
+Sentiment Score = 
+AVERAGE(fact_reviews[polarity]) * 100
+
+
+// ── Trend Measures ────────────────────────────────────────────
+
+// Rating vs Last Month
+// Compares the average rating of the current month vs the previous month.
+// Useful for identification of brand reputation drops or improvements.
+Rating vs Last Month = 
+VAR CurrentMonth = MAX(fact_monthly_summary[year_month])
+VAR PrevMonth = 
+    CALCULATE(
+        MAX(fact_monthly_summary[year_month]),
+        fact_monthly_summary[year_month] < CurrentMonth
+    )
+VAR CurrentRating = 
+    CALCULATE(
+        AVERAGE(fact_monthly_summary[avg_rating]),
+        fact_monthly_summary[year_month] = CurrentMonth
+    )
+VAR PrevRating = 
+    CALCULATE(
+        AVERAGE(fact_monthly_summary[avg_rating]),
+        fact_monthly_summary[year_month] = PrevMonth
+    )
+RETURN CurrentRating - PrevRating
+
+
+// Rating Trend Arrow
+// Returns a visual indicator (▲, ▼, →) based on the MoM change in rating.
+// Highlights significant shifts (+/- 0.1) in average rating.
+Rating Trend Arrow = 
+VAR Change = [Rating vs Last Month]
+RETURN
+    IF(Change > 0.1, "▲ " & FORMAT(Change, "0.00"),
+    IF(Change < -0.1, "▼ " & FORMAT(ABS(Change), "0.00"),
+    "→ Stable"))
+
+
+// Review Velocity %
+// Averages the MoM percentage change in review volume for the selected period.
+Review Velocity % = 
+AVERAGE(fact_monthly_summary[review_velocity])
+
+
+// ── Brand Health Score ────────────────────────────────────────
+
+// Brand Health Score
+// A composite KPI (0-100) assessing overall brand standing:
+// - Average Rating contributes up to 40 points (linear scale 1-5).
+// - Net Sentiment (Positive % minus Negative %) contributes up to 40 points.
+// - MoM Review velocity trend contributes up to 20 points.
+Brand Health Score = 
+VAR RatingScore = ([Avg Rating] / 5) * 40
+VAR SentimentScore = (([Positive Review %] - [Negative Review %]) / 100 + 1) / 2 * 40
+VAR VelocityScore = 
+    IF([Review Velocity %] > 0, 20, 
+    IF([Review Velocity %] > -20, 10, 0))
+RETURN RatingScore + SentimentScore + VelocityScore
+
+
+// ── Alert Measures ────────────────────────────────────────────
+
+// Active High Alerts
+// Counts the number of active alerts categorized as "High" severity (shift > 20%).
+Active High Alerts = 
+CALCULATE(
+    COUNTROWS(keyword_alerts),
+    keyword_alerts[alert_severity] = "High"
+)
+
+
+// Top Rising Keyword
+// Returns the single keyword with the highest positive percentage shift this period.
+// Note: TOPN returns a table. To display this in a Card visual, wrap it in CONCATENATEX as shown below:
+// CONCATENATEX(TOPN(1, keyword_alerts, keyword_alerts[keyword_shift], DESC), keyword_alerts[keyword], ", ")
+Top Rising Keyword = 
+CONCATENATEX(
+    TOPN(1, keyword_alerts, keyword_alerts[keyword_shift], DESC),
+    keyword_alerts[keyword],
+    ", "
+)
+
+
+// ── Keyword Measures ─────────────────────────────────────────
+
+// Packaging Complaint %
+// The percentage of reviews that mention packaging.
+Packaging Complaint % = 
+DIVIDE(
+    COUNTROWS(FILTER(fact_reviews, fact_reviews[has_keyword_packaging] = 1)),
+    COUNTROWS(fact_reviews),
+    0
+) * 100
+
+
+// Delivery Complaint %
+// The percentage of reviews that mention delivery.
+Delivery Complaint % = 
+DIVIDE(
+    COUNTROWS(FILTER(fact_reviews, fact_reviews[has_keyword_delivery] = 1)),
+    COUNTROWS(fact_reviews),
+    0
+) * 100
